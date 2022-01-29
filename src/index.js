@@ -7,14 +7,16 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ManagePresident from "./Pages/managePresident";
 import ManageStudent from "./Pages/manageStudent";
 import AuthAdmin from "./Pages/authAdmin";
+import HomeAdmin from "./Pages/homeAdmin";
 
 ReactDOM.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />} />
+      <Route path="/" element={<AuthAdmin />} />
       <Route path="/home" element={<AuthAdmin />} />
-      <Route path="/student" element={<ManagePresident />} />
-      <Route path="/president" element={<ManageStudent />} />
+      <Route path="/homeAdmin" element={<HomeAdmin />} />
+      <Route path="/student" element={<ManageStudent />} />
+      <Route path="/president" element={<ManagePresident />} />
     </Routes>
   </BrowserRouter>,
   document.getElementById("root")

@@ -1,9 +1,18 @@
 import React from "react";
+import AppBarCustom from "../Components/appBarCustom";
 
 export default function ManagePresident() {
+  const myStyle = {
+    backgroundImage: "url(/login.jpg)",
+    height: "100vh",
+    fontSize: "30px",
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
+  };
   return (
-    <div>
-      <h1>Manage President</h1>
+    <div style={myStyle}>
+      <AppBarCustom />
+      <h1>Manage Student</h1>
     </div>
   );
 }

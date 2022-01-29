@@ -3,47 +3,72 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { AppBar, IconButton, Toolbar } from "@mui/material";
 import AppBarCustom from "../Components/appBarCustom";
-
-function Copyright(props) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
+import { Navigate } from "react-router-dom";
+import axios from "axios";
 
 const theme = createTheme();
 
 export default function AuthAdmin() {
+  const [username, setUsername] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [errorText, setErrorText] = React.useState(false);
+  const [navi, setNavi] = React.useState(false);
+
+  const getDataUser = async (id) => {
+    axios
+      .get("/vote/admin_data/" + id)
+      .then((response) => {
+        if (response.data.message == "SUCCESS") {
+          setNavi(true);
+        } else {
+        }
+        console.log("response: ", response);
+        // do something about response
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  React.useEffect(() => {
+    var adminId = localStorage.getItem("admin_id");
+    getDataUser(adminId);
+  }, []);
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    setErrorText(false);
     // eslint-disable-next-line no-console
     console.log({
-      email: data.get("email"),
-      password: data.get("password"),
+      username: username,
+      password: password,
     });
+    if (username != "" && password != "") {
+      // setNavi(true);
+
+      axios
+        .post("/vote/login", {
+          username: username,
+          password: password,
+        })
+        .then((response) => {
+          if (response.data.message == "SUCCESS") {
+            localStorage.setItem("admin_id", response.data.result[0].id);
+            setNavi(true);
+          } else {
+            setErrorText(true);
+          }
+          console.log("response: ", response);
+          // do something about response
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   };
   const myStyle = {
     backgroundImage: "url(/login.jpg)",
@@ -54,6 +79,7 @@ export default function AuthAdmin() {
   };
   return (
     <div style={myStyle}>
+      {navi && <Navigate to="/homeAdmin" replace={true} />}
       <AppBarCustom />
       <ThemeProvider theme={theme}>
         <Container
@@ -81,7 +107,7 @@ export default function AuthAdmin() {
             </Typography>
             <Box
               component="form"
-              onSubmit={handleSubmit}
+              // onSubmit={handleSubmit}
               noValidate
               sx={{ mt: 1 }}
             >
@@ -93,6 +119,9 @@ export default function AuthAdmin() {
                 label="ชื่อผู้ใช้งาน"
                 name="email"
                 autoComplete="email"
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                }}
               />
               <TextField
                 margin="normal"
@@ -103,17 +132,23 @@ export default function AuthAdmin() {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
               />
-              {/* <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
-              /> */}
+              {errorText && (
+                <a style={{ fontSize: "15px", color: "red" }}>
+                  ไม่พบข้อมูลผู้ใช้งาน
+                </a>
+              )}
+
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 size="large"
                 sx={{ mt: 3, mb: 2 }}
+                onClick={handleSubmit}
               >
                 เข้าสู่ระบบ
               </Button>
