@@ -13,6 +13,7 @@ function App() {
           <li>
             <Link to="/student">Student Page</Link>
             <Link to="/president">President Page</Link>
+            <Link to="/home">Admin Page</Link>
           </li>
         </ul>
       </nav>
