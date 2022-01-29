@@ -6,21 +6,15 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ManagePresident from "./Pages/managePresident";
 import ManageStudent from "./Pages/manageStudent";
+import AuthAdmin from "./Pages/authAdmin";
 
 ReactDOM.render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<App />} />
-      <Route
-        path="home"
-        element={
-          <div>
-            <h1>Home</h1>
-          </div>
-        }
-      />
-      <Route path="student" element={<ManagePresident />} />
-      <Route path="president" element={<ManageStudent />} />
+      <Route path="/home" element={<AuthAdmin />} />
+      <Route path="/student" element={<ManagePresident />} />
+      <Route path="/president" element={<ManageStudent />} />
     </Routes>
   </BrowserRouter>,
   document.getElementById("root")
