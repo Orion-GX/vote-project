@@ -3,8 +3,18 @@ import Link from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { AppBar, IconButton, Toolbar } from "@mui/material";
-import { Navigate } from "react-router-dom";
+import { AppBar, Toolbar } from "@mui/material";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Slide from "@mui/material/Slide";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 export default function AppBarCustom() {
   const [logoutNavi, setLogoutNavi] = React.useState(false);
@@ -14,8 +24,40 @@ export default function AppBarCustom() {
     window.location = "/";
     window.history.replaceState(null, null, "/");
   };
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
   return (
     <div>
+      <Dialog
+        open={open}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClose}
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle>คุณต้องการออกจากระบบ</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description"></DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>ยกเลิก</Button>
+          <Button
+            onClick={(e) => {
+              setOpen(false);
+              handleLogout(e);
+            }}
+          >
+            ยืนยัน
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Box sx={{ flexGrow: 1 }}>
         <AppBar style={{ backgroundColor: "#501624" }} position="relative">
           <Toolbar>
@@ -39,7 +81,9 @@ export default function AppBarCustom() {
               color="inherit"
               noWrap
             >
-              ระบบบริหารจัดการงานเลือกตั้งนายกองค์การ
+              <Link href="/homeAdmin" color="white" underline="none">
+                ระบบบริหารจัดการงานเลือกตั้งนายกองค์การ
+              </Link>
             </Typography>
             <Container maxWidth="sm"></Container>
             {localStorage.getItem("admin_id") != null ? (
@@ -79,9 +123,8 @@ export default function AppBarCustom() {
                 noWrap
               >
                 <Link
-                  href="/#"
                   color="white"
-                  onClick={handleLogout}
+                  onClick={handleClickOpen}
                   underline="none"
                 >
                   ออกจากระบบ
