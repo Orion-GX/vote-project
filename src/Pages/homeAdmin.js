@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Card, Grid } from "@mui/material";
+import { Button, Card, Grid, TextField } from "@mui/material";
 import AppBarCustom from "../Components/appBarCustom";
 import "./homeAdmin.css";
 import { useState } from "react";
@@ -16,6 +16,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { Box } from "@mui/system";
+import moment from "moment";
 
 const columns = [
   {
@@ -70,7 +72,15 @@ export default function HomeAdmin() {
   const [userData, setUserData] = useState([]);
   const [presidentData, setPresidentData] = useState([]);
   const [studentData, setStudentData] = useState([]);
+  const [voteData, setVoteData] = useState([]);
   const [navi, setNavi] = React.useState(false);
+  const [selectedDate, handleDateChange] = useState(new Date());
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [editVote, setEditVote] = useState(false);
+  const [voteEnable, setVoteEnable] = useState(0);
+  const [voteId, setVoteId] = useState("");
+  const [reportEnable, setReportEnable] = useState(false);
   //   const [dataReady, setDataReady] = useState(false);
   const myStyle = {
     backgroundImage: "url(/login.jpg)",
@@ -137,6 +147,95 @@ export default function HomeAdmin() {
       });
   };
 
+  const getDataVoteEvent = async (id) => {
+    axios
+      .get("/vote/vote_all")
+      .then((response) => {
+        if (response.data.message == "SUCCESS") {
+          setVoteId(response.data.result[0].id);
+          var start = response.data.result[0].start_vote;
+          var arrStart = `${start}`.split(" ");
+          var xx = arrStart[1].split(":");
+          var x = arrStart[0] + "T" + xx[0] + ":" + xx[1];
+          setStartDate(x);
+          var end = response.data.result[0].end_vote;
+          var arrEnd = `${end}`.split(" ");
+          var yy = arrEnd[1].split(":");
+          var y = arrEnd[0] + "T" + yy[0] + ":" + yy[1];
+          setEndDate(y);
+          setVoteData(response.data.result);
+
+          var m = moment.utc(
+            response.data.result[0].end_vote,
+            "YYYY-MM-DD  HH:mm:ss"
+          );
+          var mm = moment().utc("YYYY-MM-DD  HH:mm:ss");
+          console.log(m.toLocaleString());
+          console.log(mm.toLocaleString());
+          var isvalid = m.isValid();
+          var isBefore = m.isBefore(mm);
+          if (isBefore) {
+            setReportEnable(true);
+          }
+
+          console.log("Is valid " + isvalid);
+          console.log("Is after " + isBefore);
+        } else {
+        }
+        console.log("response: ", response);
+        console.log(x + " /// " + y);
+        // do something about response
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  const editDataVoteEvent = async (vid) => {
+    axios
+      .post("/vote/vote_edit/" + voteId, {
+        startVote: startDate,
+        endVote: endDate,
+        voteEnable: vid,
+      })
+      .then((response) => {
+        if (response.data.message == "SUCCESS") {
+          setStartDate("");
+          setEndDate("");
+          setVoteData([]);
+          setEditVote(false);
+          getDataVoteEvent();
+        }
+        console.log("response: ", response);
+        // do something about response
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+  const addDataVoteEvent = async () => {
+    axios
+      .post("/vote/vote_add", {
+        startVote: startDate,
+        endVote: endDate,
+        voteEnable: 1,
+      })
+      .then((response) => {
+        if (response.data.message == "SUCCESS") {
+          setStartDate("");
+          setEndDate("");
+          setVoteData([]);
+          setEditVote(false);
+          getDataVoteEvent();
+        }
+        console.log("response: ", response);
+        // do something about response
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   React.useEffect(() => {
     var adminId = localStorage.getItem("admin_id");
     console.log(adminId);
@@ -144,6 +243,7 @@ export default function HomeAdmin() {
       getDataUser(adminId);
       getDataPresident();
       getDataStudent();
+      getDataVoteEvent();
     } else {
       setNavi(true);
     }
@@ -152,85 +252,280 @@ export default function HomeAdmin() {
     <div style={myStyle}>
       {navi && <Navigate to="/home" replace={true} />}
       <AppBarCustom />
-      <Grid style={{ marginTop: "10px" }} container spacing={5}>
+      <Grid style={{ marginTop: "10px" }} container spacing={2}>
         <Grid item xs={5}>
-          <Card
-            style={{
-              backgroundColor: "whitesmoke",
-              font: "1em sans-serif",
-              fontSize: "large",
-              padding: "20px",
-              paddingLeft: "20px",
-              paddingBottom: "30px",
-              borderRadius: "20px 20px 20px 20px",
-              marginLeft: "100px",
-            }}
-          >
-            <Grid
-              container
-              direction="row"
-              justifyContent="center"
-              alignItems="flex-start"
-              style={{ fontSize: "20px", fontWeight: "bold" }}
-            >
-              <p>ข้อมูลส่วนตัว</p>
+          <Grid container direction="column">
+            <Grid>
+              <Card
+                style={{
+                  backgroundColor: "whitesmoke",
+                  font: "1em sans-serif",
+                  fontSize: "large",
+                  padding: "20px",
+                  paddingLeft: "20px",
+                  paddingBottom: "30px",
+                  borderRadius: "20px 20px 20px 20px",
+                  marginLeft: "100px",
+                }}
+              >
+                <Grid
+                  container
+                  direction="row"
+                  justifyContent="center"
+                  alignItems="flex-start"
+                  style={{ fontSize: "20px", fontWeight: "bold" }}
+                >
+                  <p>ข้อมูลส่วนตัว</p>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <p>ชื่อ-สกุล</p>
+                  </Grid>
+                  <Grid item>
+                    <p>:</p>
+                  </Grid>
+                  <Grid item xs>
+                    {userData.length != 0 ? (
+                      <p>{userData[0].adName}</p>
+                    ) : (
+                      <p></p>
+                    )}
+                  </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <p>รหัสนักศึกษา</p>
+                  </Grid>
+                  <Grid item>
+                    <p>:</p>
+                  </Grid>
+                  <Grid item xs>
+                    {userData.length != 0 ? <p>{userData[0].adID}</p> : <p></p>}
+                  </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <p>สาขาวิชา</p>
+                  </Grid>
+                  <Grid item>
+                    <p>:</p>
+                  </Grid>
+                  <Grid item xs>
+                    {userData.length != 0 ? <p>{userData[0].tyID}</p> : <p></p>}
+                  </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <p>คณะ</p>
+                  </Grid>
+                  <Grid item>
+                    <p>:</p>
+                  </Grid>
+                  <Grid item xs>
+                    {userData.length != 0 ? (
+                      <p>{userData[0].brandID}</p>
+                    ) : (
+                      <p></p>
+                    )}
+                  </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <p>อีเมลล์</p>
+                  </Grid>
+                  <Grid item>
+                    <p>:</p>
+                  </Grid>
+                  <Grid item xs>
+                    {userData.length != 0 ? (
+                      <p>{userData[0].email}</p>
+                    ) : (
+                      <p></p>
+                    )}
+                  </Grid>
+                </Grid>
+              </Card>
             </Grid>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <p>ชื่อ-สกุล</p>
-              </Grid>
-              <Grid item>
-                <p>:</p>
-              </Grid>
-              <Grid item xs>
-                {userData.length != 0 ? <p>{userData[0].adName}</p> : <p></p>}
-              </Grid>
+
+            <Grid style={{ marginTop: "-70px" }}>
+              <Card
+                style={{
+                  backgroundColor: "whitesmoke",
+                  font: "1em sans-serif",
+                  fontSize: "large",
+                  padding: "20px",
+                  paddingLeft: "20px",
+                  paddingBottom: "30px",
+                  borderRadius: "20px 20px 20px 20px",
+                  marginLeft: "100px",
+                }}
+              >
+                {reportEnable ? (
+                  <Grid
+                    container
+                    direction="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    spacing={4}
+                  >
+                    <Grid style={{ fontSize: "20px", fontWeight: "bold" }} item>
+                      สิ้นสุดการโหวต
+                    </Grid>
+
+                    <Grid
+                      container
+                      direction="row"
+                      justifyContent="space-around"
+                      alignItems="center"
+                      paddingTop={2}
+                      marginLeft={1}
+                    >
+                      <Box sx={{ width: 180, marginLeft: 2 }}>
+                        <Button
+                          fullWidth
+                          size="large"
+                          color="success"
+                          variant="contained"
+                          onClick={(e) => {}}
+                        >
+                          ดูรายงานการโหวต
+                        </Button>
+                      </Box>
+                      <Box sx={{ width: 180, marginLeft: 2 }}>
+                        <Button
+                          fullWidth
+                          size="large"
+                          color="info"
+                          variant="contained"
+                          onClick={(e) => {
+                            editDataVoteEvent(0);
+                            setReportEnable(false);
+                          }}
+                        >
+                          เลือกวันที่เริ่มโหวต
+                        </Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  <Grid
+                    container
+                    direction="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    spacing={4}
+                  >
+                    <Grid style={{ fontSize: "20px", fontWeight: "bold" }} item>
+                      {voteData.length == 0
+                        ? "เลือกวันที่เริ่มและสิ้นสุดโหวต"
+                        : "อยู่ในช่วงการโหวต"}
+                    </Grid>
+                    <Grid item>
+                      <TextField
+                        id="datetime-local"
+                        label="วันที่และเวลาที่เริ่มโหวต"
+                        type="datetime-local"
+                        value={startDate}
+                        sx={{ width: 250 }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        onChange={(e) => {
+                          console.log(e.target.value);
+                          setStartDate(e.target.value);
+                          setEditVote(true);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <TextField
+                        id="datetime-local"
+                        label="วันที่และเวลาที่เริ่มโหวต"
+                        type="datetime-local"
+                        value={endDate}
+                        sx={{ width: 250 }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        onChange={(e) => {
+                          console.log(e.target.value);
+                          setEndDate(e.target.value);
+                          setEditVote(true);
+                        }}
+                      />
+                    </Grid>
+                    {voteData.length != 0 ? (
+                      <Grid
+                        container
+                        direction="row"
+                        justifyContent="space-around"
+                        alignItems="center"
+                        paddingTop={2}
+                        marginLeft={1}
+                      >
+                        {editVote ? (
+                          <Box sx={{ width: 180, marginLeft: 2 }}>
+                            <Button
+                              fullWidth
+                              size="large"
+                              color="primary"
+                              variant="contained"
+                              onClick={(e) => {
+                                setVoteEnable(1);
+                                editDataVoteEvent(1);
+                              }}
+                            >
+                              แก้ไข
+                            </Button>
+                          </Box>
+                        ) : null}
+                        <Box sx={{ width: 180, marginLeft: 2 }}>
+                          <Button
+                            fullWidth
+                            size="large"
+                            color="error"
+                            variant="contained"
+                            onClick={(e) => {
+                              setVoteEnable(0);
+                              editDataVoteEvent(0);
+                            }}
+                          >
+                            ปิดโหวต
+                          </Button>
+                        </Box>
+                      </Grid>
+                    ) : (
+                      <Grid
+                        container
+                        direction="row"
+                        justifyContent="space-around"
+                        alignItems="center"
+                        paddingTop={2}
+                        marginLeft={1}
+                      >
+                        <Box sx={{ width: 180, marginLeft: 2 }}>
+                          <Button
+                            fullWidth
+                            size="large"
+                            color="success"
+                            variant="contained"
+                            onClick={(e) => {
+                              if (startDate != "" && endDate != "") {
+                                setVoteEnable(1);
+                                addDataVoteEvent();
+                              }
+                            }}
+                          >
+                            ยืนยัน
+                          </Button>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+                )}
+              </Card>
             </Grid>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <p>รหัสนักศึกษา</p>
-              </Grid>
-              <Grid item>
-                <p>:</p>
-              </Grid>
-              <Grid item xs>
-                {userData.length != 0 ? <p>{userData[0].adID}</p> : <p></p>}
-              </Grid>
-            </Grid>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <p>สาขาวิชา</p>
-              </Grid>
-              <Grid item>
-                <p>:</p>
-              </Grid>
-              <Grid item xs>
-                {userData.length != 0 ? <p>{userData[0].tyID}</p> : <p></p>}
-              </Grid>
-            </Grid>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <p>คณะ</p>
-              </Grid>
-              <Grid item>
-                <p>:</p>
-              </Grid>
-              <Grid item xs>
-                {userData.length != 0 ? <p>{userData[0].brandID}</p> : <p></p>}
-              </Grid>
-            </Grid>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <p>อีเมลล์</p>
-              </Grid>
-              <Grid item>
-                <p>:</p>
-              </Grid>
-              <Grid item xs>
-                {userData.length != 0 ? <p>{userData[0].email}</p> : <p></p>}
-              </Grid>
-            </Grid>
-          </Card>
+          </Grid>
         </Grid>
         <Grid item justifyContent="flex-start" alignItems="stretch" xs>
           <Grid
